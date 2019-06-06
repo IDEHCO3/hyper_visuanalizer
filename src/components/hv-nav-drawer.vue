@@ -28,9 +28,7 @@
           <basic-list-wms  v-on:changed-item-on-list-radio-button=baseLayersRadioChanged hint='Escolha a instituição para apresentar camadas' v-bind:items="registeredWMSCapability"  icon_name="layers" title="Geoserviços WMS"></basic-list-wms>
           <v-divider></v-divider>
           <list-resource icon_name="layers" title="Camadas selecionadas"></list-resource>
-          
-
-  </v-navigation-drawer>
+    </v-navigation-drawer>
   </div>
 </template>
 <script>
@@ -38,7 +36,7 @@
   import BasicListWms from './BasicListWms'
   import BasicListHyperResource from './BasicListHyperResource'
   import ListResource from './ListResource'
-  
+
   export default {
     name: 'hv-nav-drawer',
     components: { BasicListRadioButton, BasicListWms, BasicListHyperResource, ListResource },
@@ -47,7 +45,7 @@
         drawer: true,
         icon_btn: 'chevron_right',
         btn_color: 'green',
-        
+
         items: [
           { title: 'Camadas base', icon: 'dashboard' },
           { title: 'Sobre', icon: 'question_answer' }
@@ -57,11 +55,11 @@
         baseLayersRadio: [{name: 'Openstreetmap', value: 'OSM'}, {name: 'Google', value: 'google'}, {name: 'Google Satélite', value: 'satelite'}, {name: 'Water color', value: 'watercolor'}, {name: 'Wikimedia', value: 'wikimedia'}, {name: 'Nenhum', value: null}],
         registeredWMSCapability: [{name: 'BNDES', title: 'Banco Nacional de Desenvolvimento Econômico e Social', url: 'http://www.geoservicos.inde.gov.br/geoserver/BNDES/wms', registration: '', service_type: ''},
                                   {name: 'SPM', title: 'Secretaria Nacional de Políticas para Mulher', url: 'http://www.geoservicos.inde.gov.br/geoserver/SPM/wms', registration: '', service_type: ''},
-                                  {name: 'CCAR-IBGE', title: 'Coordenação de Cartografia-IBGE', url: 'http://172.30.10.86/geoserver-ccar/ows', registration: '', service_type: ''}
+                                  {name: 'CCAR-IBGE', title: 'Coordenação de Cartografia-IBGE', url: 'http://ggt-des.ibge.gov.br/geoserver-ccar/ows', registration: '', service_type: ''}
                                 ],
 
-        geoHyperEntryPoint: [{name: 'BCIM-IBGE', title: 'Base Cartográfica Contínua do Brasil ao Milionésimo-IBGE', url: 'http://172.30.10.86/api/bcim/', registration: '', service_type: ''},
-                                                          {name: 'OSM', title: 'Base vetorial do OpenStreetMap de 2017-06', url: 'http://172.30.10.86/api/osm-2017-06/', registration: '', service_type: ''},
+        geoHyperEntryPoint: [{name: 'BCIM-IBGE', title: 'Base Cartográfica Contínua do Brasil ao Milionésimo-IBGE', url: 'http://ggt-des.ibge.gov.br/api/bcim/', registration: '', service_type: ''},
+                                                          {name: 'OSM', title: 'Base vetorial do OpenStreetMap de 2017-06', url: 'http://ggt-des.ibge.gov.br/api/osm-2017-06/', registration: '', service_type: ''},
 
                                                         ],
       }

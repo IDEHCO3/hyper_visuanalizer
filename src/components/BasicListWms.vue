@@ -70,7 +70,7 @@ export default {
   methods: {
     onChange(anItem) {
       let changed_item_on = "changed-items-on-list-checkbox"
-      let idx = this.itemsName.indexOf(this.item)
+      let idx = this.itemsName.indexOf(anItem)
       let itemObject = this.items[idx]
       if(!itemObject)
         return
@@ -118,6 +118,7 @@ export default {
       return this.$store.state.facadeOL
     },
     async search() {
+      
       let iri = null
       if (this.url =='')
         return

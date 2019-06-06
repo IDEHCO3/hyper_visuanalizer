@@ -38,7 +38,7 @@
           <v-list-tile-action>
             <v-switch  @click.native="layerSwitchClicked(layer)"  v-model="layersBoolean[index]"  color="cyan" :disabled="layersBoolean[index]" /></v-switch>
           </v-list-tile-action>
-          <v-list-tile-content>
+          <v-list-tile-content dense>
             {{layer.name}}
             <!--<v-checkbox  @click="layerCheckboxClicked(layer)" :value="layer" :label="layer.name"></v-checkbox>-->
           </v-list-tile-content>
@@ -112,7 +112,8 @@ export default {
     },
     onChange(anItem) {
       //let changed_item_on = "changed-items-on-list-checkbox"
-      let idx = this.itemsName.indexOf(this.item)
+      console.log(anItem);
+      let idx = this.itemsName.indexOf(anItem)
       let itemObject = this.items[idx]
       if(!itemObject)
         return
