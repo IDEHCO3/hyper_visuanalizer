@@ -104,7 +104,6 @@ export default {
       let iri = this.normalizedUrlWMSCapabilities(this.url)
       try {
           const response = await axios.get(iri)
-
           this.wmsLayersFromGetCapabilities = this.facadeOL().getWMSCapabilityLayers(response.data);
           for (let i = 0; i++; i <= this.wmsLayersFromGetCapabilities.length)
             this.layersBoolean[i] = false
@@ -118,7 +117,7 @@ export default {
       return this.$store.state.facadeOL
     },
     async search() {
-      
+
       let iri = null
       if (this.url =='')
         return

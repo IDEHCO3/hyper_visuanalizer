@@ -69,6 +69,14 @@ export default {
           }
         ]
       },
+      findItem(apis) {
+        if (apis == undefined)
+            return 
+        res = apis.find(api => api.id === id)
+        if (res == undefined)
+          api
+        
+      },
       selected() {
         if (!this.active.length) return undefined
         const id = this.active[0]
@@ -77,7 +85,6 @@ export default {
         return this.apis.find(api => api.id === id)
       }
     },
-    
     methods: {
         async request(url, http_method=axios.get) {
             let iri = null
@@ -112,7 +119,7 @@ export default {
             }
             
             item.children= children
-            
+    
             
         }
     },
