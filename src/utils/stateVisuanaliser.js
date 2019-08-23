@@ -1,8 +1,8 @@
 import Vue from 'vue'
+import Vuex from 'vuex'
+import { FacadeOL } from './facade_openlayers.js'
 
 Vue.use(Vuex)
-import Vuex from 'vuex'
-import { FacadeOL } from './facade_openLayers.js'
 
 export const store = new Vuex.Store({
   state: {

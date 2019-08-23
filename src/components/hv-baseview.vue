@@ -1,26 +1,73 @@
 <template>
-  <v-app dark id="map">
-  </v-app>
+  <div>
+    <v-app dark id="map" />
+    <div id="popup" ref="popup"></div>
+  </div>
 </template>
 
 <script>
-  export default {
-    name: 'hv-baseview',
-    data () {
-      return {
-        map: null,
-        view: null,
-        layers: []
-      }
-    },
-    methods: {
-    },
-    mounted() {
-      // FacadeOL default values => id_map='map', coordinates_center=[-4331024.58685793, -1976355.8033415168], a_zoom_value = 4, a_baseLayer_name='OSM'
-      this.$store.commit('default_facadeOL')
-      //this.$store.state.facadeOL= this.$store.state.;
+import Map from 'ol/Map'
+import Overlay from 'ol/Overlay.js';
+import Select from 'ol/interaction/Select';
+
+export default {
+  name: 'hv-baseview',
+  data () {
+    return {
+      map: null,
+      view: null,
+      layers: []
     }
+  },
+  methods: {
+    facadeOL() {
+      return this.$store.state.facadeOL
+    },
+    onEachFeature (feature) {
+      let result = '<div id="popup-close">X</div>'
+      for (const [property_name, property_value] of Object.entries(feature)) {
+      	if (property_name !== 'geometry') {
+          result += "<p>" + property_name + ": " + property_value + "</p>"
+        }
+      }
+      return result
+    },
+    popup (evt) {
+      console.log(evt);
+      const map = this.facadeOL().map
+      const popup = new Overlay({ element: this.$refs.popup })
+      const popupElement = this.$refs.popup
+      const select = new Select()
+
+      map.addInteraction(select)
+
+      select.on('select', function(e) {
+        map.removeInteraction(select)
+        const layer_properties = e.selected[0].getProperties()
+        popup.setPosition(evt.coordinate)
+        map.addOverlay(popup)
+
+        let result = '<div id="popup-close">X</div>'
+        if (layer_properties) {
+          for (const [property_name, property_value] of Object.entries(layer_properties)) {
+          	if (property_name !== 'geometry') {
+              result += "<p>" + property_name + ": " + property_value + "</p>"
+            }
+          }
+        }
+
+        popupElement.innerHTML = result
+        popupElement.firstElementChild.addEventListener('click', () => popup.setPosition(undefined))
+      })
+    },
+  },
+  mounted () {
+    // FacadeOL default values => id_map='map', coordinates_center=[-4331024.58685793, -1976355.8033415168], a_zoom_value = 4, a_baseLayer_name='OSM'
+    this.$store.commit('default_facadeOL')
+    this.facadeOL().map.on('singleclick', evt => this.popup(evt))
+    //this.$store.state.facadeOL= this.$store.state.;
   }
+}
 </script>
 
 <style>

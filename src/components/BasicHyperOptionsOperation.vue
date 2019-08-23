@@ -1,26 +1,29 @@
 <template>
-<div>    
-  <v-expansion-panel color="black" focusable>
-    <v-expansion-panel-content v-for="(operation, index) in optionsLayer.supported_operations" :key="index">
-      <div slot="header">{{operation["hydra:operation"]}}</div>
-      <v-card>
-        <v-card-text class="grey lighten-2">Descrição: </v-card-text>
-        <v-card-text class="grey lighten-2">Semântica da operação em: <a target="_blank">{{operation["@id"]}} </a></v-card-text>
-        <v-card-text class="grey lighten-2" v-if="(operation['hydra:expects'].length)>0">Parâmetros esperados:
-            <template v-for="obj_parameter in operation['hydra:expects']">
-                <v-text-field :label="obj_parameter['parameter']" append-icon="check_circle"> </v-text-field>
-            </template>
-        </v-card-text>
-        <v-card-text class="grey lighten-2">Retorno da operação: {{operation["hydra:returns"]}}</v-card-text>
-        <v-card-text class="grey lighten-2">Método HTTP: {{operation["hydra:method"]}}</v-card-text>
-        <v-card-text class="grey lighten-2">Exemplo: <a>{{optionsLayer.iri}}/{{operation["hydra:operation"]}}/{{parameters_str(operation['hydra:expects'])}}</a></v-card-text>
-      </v-card>
-    </v-expansion-panel-content>
-  </v-expansion-panel>
-  <div class="botoes">
-    <v-btn round class="cyan darken-1" @click.native="closeDialog">Ok</v-btn>
+<div>
+  <v-expansion-panels color="black" focusable>
 
-  </div>
+    <v-expansion-panel v-for="(operation, index) in optionsLayer.supportedOperations" :key="index">
+      <v-expansion-panel-header>{{ operation["hydra:operation"] }}</v-expansion-panel-header>
+      <v-expansion-panel-content>
+        <v-card>
+          <v-card-text class="grey lighten-2">Descrição: </v-card-text>
+          <v-card-text class="grey lighten-2">Semântica da operação em: <a target="_blank">{{ operation["@id"] }} </a></v-card-text>
+          <v-card-text class="grey lighten-2" v-if="(operation['hydra:expects'].length) > 0">Parâmetros esperados:
+            <v-flex v-for="(obj_parameter, index) in operation['hydra:expects']" :key="index">
+              <v-text-field :label="obj_parameter['parameter']" append-icon="check_circle"> </v-text-field>
+            </v-flex>
+          </v-card-text>
+          <v-card-text class="grey lighten-2">Retorno da operação: {{ operation["hydra:returns"] }}</v-card-text>
+          <v-card-text class="grey lighten-2">Método HTTP: {{ operation["hydra:method"] }}</v-card-text>
+          <v-card-text class="grey lighten-2">Exemplo: <a>{{ optionsLayer.iri }}/{{ operation["hydra:operation"] }}/{{ parameters_str(operation['hydra:expects']) }}</a></v-card-text>
+        </v-card>
+      </v-expansion-panel-content>
+    </v-expansion-panel>
+  </v-expansion-panels>
+
+  <v-flex class="botoes">
+    <v-btn tile outlined color="success" @click.native="closeDialog">Ok</v-btn>
+  </v-flex>
 </div>
 </template>
 
@@ -28,26 +31,27 @@
 import axios from 'axios';
 
 export default {
-    props: {
-        name: {type: String, required: false},
-        optionsLayer: { type: Object, required: false}, // Items is Array. each Item  is an object => {name: a_name, value: a_value }
-        icon_name: {type: String, required: false},
-        title: {type: String, required: false}
+  props: {
+    name: {type: String, required: false},
+    optionsLayer: { type: Object, required: false}, // Items is Array. each Item  is an object => {name: a_name, value: a_value }
+    icon_name: {type: String, required: false},
+    title: {type: String, required: false}
+  },
+  methods: {
+    log(msg) {
+      console.log(msg);
     },
-    methods: {
-        parameters_str(parameters) {
-          if(parameters.length == 0)
-            return ''
-          return '{' + parameters.join('&') + '}'
-        },
-        closeDialog() {
-          this.$emit('close')
-          console.log('close on BasicHyperOptionsOperation')
-        }
+    parameters_str (parameters) {
+      if (parameters.length == 0)
+        return ''
 
-
+      return '{' + parameters.join('&') + '}'
     },
-
+    closeDialog () {
+      this.$emit('close')
+      console.log('close on BasicHyperOptionsOperation')
+    }
+  }
 }
 </script>
 <style scoped>

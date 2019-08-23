@@ -2,43 +2,74 @@
   <v-card>
     <v-card-title class="indigo white--text headline">
       Apis
-      <v-spacer> </v-spacer>
-       <v-text-field  label="Entre com a Url da API"></v-text-field>
+      <v-spacer></v-spacer>
+      <v-text-field class="txfield-api" color="white" background-color="white"
+      outline clearable label="Entre com a Url da API"
+      v-model="textFieldApiLink" @keyup.enter="addApiLink(textFieldApiLink)" />
     </v-card-title>
-    <v-layout justify-space-between pa-3>
-      <v-flex xs5>
-        <v-treeview :active.sync="active" :items="items" :load-children="selectedItem" :open.sync="open"  activatable
-          active-class="primary--text"
-          class="grey lighten-5"
-          open-on-click
-          transition
-        >
-          <v-icon v-if="!item.children" slot="prepend" slot-scope="{ item, active }" :color="active ? 'primary' : ''">
-              mdi-account
-          </v-icon>
-        </v-treeview>
+
+    <v-layout pa-2>
+      <v-flex xs6>
+        <v-flex style="overflow-y: auto;overflow-x: auto;">
+          <v-treeview class="text-xs-left"
+          :open.sync="open" :items="items" :load-children="fetchItems"
+          :active.sync="active" active-class="primary--text"
+          activatable open-on-click transition return-object >
+
+            <v-icon slot="prepend" v-if="!item.children" slot-scope="{ item, active }" >
+              play_arrow
+            </v-icon>
+
+          </v-treeview>
+        </v-flex>
       </v-flex>
-      <v-flex d-flex text-xs-center >
-        <v-scroll-y-transition mode="out-in">
-          <div v-if="!selected" class="title grey--text text--lighten-1 font-weight-light" style="align-self: center;">
-            Selecione uma URL
-          </div>
-          <v-card v-else :key="selected.id" class="pt-4 mx-auto" flat max-width="400" >
-            <v-card-text>
-              
-              
-            </v-card-text>
-            <v-divider></v-divider>
-            <v-layout tag="v-card-text"  text-xs-left wrap >
-              <v-flex tag="strong" xs5 text-xs-right mr-3 mb-2>Company:</v-flex>
-              
-              <v-flex tag="strong" xs5 text-xs-right mr-3 mb-2>Website:</v-flex>
-              
-              <v-flex tag="strong" xs5 text-xs-right mr-3 mb-2>Phone:</v-flex>
-              
-            </v-layout>
-          </v-card>
-        </v-scroll-y-transition>
+
+      <v-flex xs6 v-if="active.length > 0">
+        <v-layout wrap>
+          <!-- PARTE ESQUERDA -->
+          <v-flex xs6>
+            <v-list>
+              <v-list-item-title v-for="(property, index) in optionsLayer.supportedProperties" :key="index"
+              style="border: 1px solid black">
+                <v-flex xs12>
+                  {{ property['hydra:property'] }}
+                </v-flex>
+                <v-flex xs2>
+                  <v-radio-group v-model="firstAttribute">
+                    <v-radio :value="property['hydra:property']"></v-radio>
+                  </v-radio-group>
+                </v-flex>
+              </v-list-item-title>
+            </v-list>
+          </v-flex>
+
+          <!-- PARTE DIREITA -->
+          <v-flex xs6>
+            <v-list>
+              <v-flex>
+                Camada: {{ selectedItem.name }}
+              </v-flex>
+              <v-list-item-title v-for="(property, index) in unionOptionLayer.supportedProperties" :key="index"
+              style="border: 1px solid black">
+                <v-flex xs1>
+                  <v-radio-group v-model="unionAttribute">
+                    <v-radio :value="property['hydra:property']"></v-radio>
+                  </v-radio-group>
+                </v-flex>
+                <v-flex xs1>
+                  <!--<v-checkbox light v-model="propertiesToAdd" :value="property['hydra:property']" />-->
+                </v-flex>
+                <v-flex xs10>
+                  {{property['hydra:property']}}
+                </v-flex>
+              </v-list-item-title>
+            </v-list>
+          </v-flex>
+
+          <v-flex xs12 align-self-start>
+            <v-btn color="indigo lighten-3" @click="onClick_joinAtributtes">Unir Atributos</v-btn>
+          </v-flex>
+        </v-layout>
       </v-flex>
     </v-layout>
   </v-card>
@@ -46,83 +77,170 @@
 
 <script>
 import axios from 'axios'
+import { OptionsLayer } from '../utils/LayerResource'
+
 export default {
-    props: {
-        name: {type: String, required: false},
-        optionsLayer: { type: Object, required: false}, // Items is Array. each Item  is an object => {name: a_name, value: a_value }
-        icon_name: {type: String, required: false},
-        title: {type: String, required: false},
+  props: {
+    optionsLayer: { type: Object, required: false },
+    hyperLayer: { type: Object, required: false },
+  },
+  data () {
+    return {
+      textFieldApiLink: '',
+      active: [],
+      open: [],
+      apis: [
+        { id: '1', name: 'API IBGE', link: 'http://ggt-des.ibge.gov.br/api/ibge/', children: [] },
+        { id: '2', name: 'OSM 2017', link: 'http://ggt-des.ibge.gov.br/api/osm-2017-06/', children: [] },
+        { id: '3', name: 'Munic 2015', link: 'http://ggt-des.ibge.gov.br/api/munic-2015/', children: [] },
+      ],
+
+      firstAttribute: null,
+      unionAttribute: null,
+      unionOptionLayer: [],
+      //propertiesToAdd: [],
+    }
+  },
+  watch: {
+    active () {
+      if (this.active.length == 0) {
+        this.unionOptionLayer = []
+        //this.propertiesToAdd = []
+        return
+      }
+
+      let selectedApiItem = this.selectedItem
+      let options = this.request(selectedApiItem.link, axios.options)
+
+      options.then(response => {
+        this.unionOptionLayer = new OptionsLayer(response.data, selectedApiItem.link)
+      })
+    }
+  },
+  computed: {
+    layerFeatures () {
+      return this.hyperLayer.layer.getSource().getFeatures()
     },
-    data() {
-        return {
-         apis: [ {id: '1', name: 'http://127.0.0.1:8000/api/bcim/', children: []} ],      
-         active: [],
-         open: [],
-        }
+    selectedItem () {
+      return this.active[0]
     },
-    computed: {
-      items () {
-        return [
-          {
-            name: 'Apis',
-            children: this.apis
-          }
-        ]
-      },
-      findItem(apis) {
-        if (apis == undefined)
-            return 
-        res = apis.find(api => api.id === id)
-        if (res == undefined)
-          api
-        
-      },
-      selected() {
-        if (!this.active.length) return undefined
-        const id = this.active[0]
-        console.log(this.active[0])
-        console.log(this.items)
-        return this.apis.find(api => api.id === id)
+    items () {
+      return [
+        { id: '0', name: 'Apis', link: null, children: this.apis }
+      ]
+    }
+  },
+  methods: {
+    async request (url, http_method=axios.get) {
+      let iri = null
+
+      try {
+        return await http_method(url)
+
+      } catch (e) {
+        this.errors.push(e)
+        console.log("Houve algum erro durante a requisição. " + this.errors);
       }
     },
-    methods: {
-        async request(url, http_method=axios.get) {
-            let iri = null
-            try {
-                return await http_method(url)
-                
-            } catch (e) {
-                this.errors.push(e)
-                console.log("Houve algum erro durante a requisição. " + this.errors);
-            }
-        },
-        isEntryPoint(link_header) {
-            return link_header.toLowerCase().indexOf('//schema.org/entrypoint') > - 1
-        },
-        async selectedItem(item){
-            console.log(item)
-            if (!item)
-                return
-            let response = await this.request(item.name,axios.head)  
-            if (!this.isEntryPoint(response.headers.link)) 
-                return 
-            response = await this.request(item.name)  
-
-            let id = 1
-            let children = []
-            
-            for (let [key, value] of Object.entries(response.data)) {
-                id++
-                let id_str = ''+ item.id + id
-                let obj = {id: id_str, name: value}
-                children.push(obj)
-            }
-            
-            item.children= children
-    
-            
-        }
+    isEntryPoint (linkHeader) {
+      return linkHeader.toLowerCase().indexOf('//schema.org/entrypoint') > - 1
     },
-    
+    async fetchItems (item) {
+      if (!item)
+        return
+
+      let response = await this.request(item.link, axios.head)
+      let linkHeader = response.headers.link
+
+      if (!this.isEntryPoint(linkHeader)) {
+        delete item.children
+        return
+      }
+
+      response = await this.request(item.link)
+
+      let id = 1
+      let children = []
+
+      for (let key in response.data) {
+        let value = response.data[key]
+        let name = response.data[key].split(item.link)
+
+        id++
+        let obj = {
+          id: '' + item.id + id,
+          name: name[1],
+          link: value,
+        }
+
+        // Gambiarra para saber se o link é nó folha
+        if (name[1].endsWith('/'))
+          obj.children = []
+
+        children.push(obj)
+      }
+
+      item.children = children
+    },
+    async addApiLink (link) {
+      let item = {
+        id: this.apis.length + 1,
+        name: link,
+        link: link,
+      }
+
+      let response = await this.request(link, axios.head)
+      let linkHeader = response.headers.link
+      console.log(response);
+      if (this.isEntryPoint(linkHeader)) {
+        item.children = []
+      }
+
+      this.apis.push(item)
+      this.textFieldApiLink = ''
+    },
+
+    async onClick_joinAtributtes () {
+      let firstAttribute = this.firstAttribute
+      let unionAttribute = this.unionAttribute
+      let optionLayer = this.optionsLayer
+      let unionOptionLayer = this.unionOptionLayer
+
+      await this.layerFeatures.map(
+        async layer => {
+          let iri = unionOptionLayer.iri.endsWith('/') ? unionOptionLayer.iri : unionOptionLayer.iri + '/'
+          //let project = ','.join(this.propertiesToAdd)
+          //let projectionFragment = 'projection/' + project
+          //console.log(projectionFragment);
+          const url = `${iri}filter/${unionAttribute}/eq/${layer.getProperties()[this.firstAttribute]}`
+
+          try {
+            const response = await axios.get(url)
+            response.data.features.map(prop => {
+              Object.keys(prop.properties).map(propKey => {
+                if (propKey == 'geom') {
+                  return
+                }
+                //if (this.propertiesToAdd.includes(propKey)) {
+                  layer.setProperties({ [propKey]: prop.properties[propKey] })
+                //}
+              })
+            })
+          } catch (error) {
+            console.log(error)
+          }
+        }
+      )
+    }
+  },
 }
 </script>
+
+<style scoped>
+  .txfield-api >>> .v-text-field__slot input {
+    color: white
+  }
+  .txfield-api >>> .v-text-field__slot label {
+    color: white
+  }
+</style>

@@ -1,45 +1,62 @@
 <template>
   <v-list class="pa-0 ma-0">
     <v-list-group>
-      <v-list-tile slot="activator">
-          <v-list-tile-avatar>
-            <v-icon color=green>{{icon_name}}</v-icon>
-          </v-list-tile-avatar>
-          <v-list-tile-content>
-            <v-list-tile-title>{{title}}</v-list-tile-title>
-          </v-list-tile-content>
-      </v-list-tile>
-      <v-list-tile>
-          <v-list-tile-content>
-            <v-select  class="elevation-0" :items="items" v-model="item" item-text= "name" hint="hint"  @change="onChange"  box single-line dense ></v-select>
-          </v-list-tile-content>
-       </v-list-tile>
-       <v-list-tile>
-           <v-list-tile-content>
-             <v-text-field  v-model="url" label="Enter WMS URL"  @keyup.enter="search" single-line solo ></v-text-field >
-           </v-list-tile-content>
-           <v-list-tile-content>
-               <v-btn icon :disabled="url==''" @click.stop="search" >
-                  <v-icon  color="blue">search</v-icon>
-                </v-btn>
-           </v-list-tile-content>
-            <v-list-tile-content>
-               <v-btn icon @click.stop="cancel" >
+      <template v-slot:activator>
+          <v-icon color=green>{{icon_name}}</v-icon>
+          <v-list-item-title>{{title}}</v-list-item-title>
+      </template>
+
+      <v-list-item>
+        <v-list-item-content class="pt-0 pb-0">
+          <v-select  
+            class=mt-2
+            shaped
+            outlined
+            filled
+            dense
+            :items="items" 
+            v-model="item"
+            item-text="name" 
+            hint="hint" 
+            @change="onChange"  
+            single-line
+          />
+
+          <v-text-field  
+            style="border-radius: 0 0 16px 16px"
+            outlined
+            dense 
+            v-model="url" label="Insira a URL WMS"  
+            @keyup.enter="search" 
+            single-line 
+            solo 
+          >
+            <template v-slot:append>
+              <v-fade-transition leave-absolute>
+                <v-icon :disabled="url==''" @click.stop="search" color="blue">search</v-icon>
+              </v-fade-transition>
+            </template>
+            <template v-slot:append-outer > 
+              <v-fade-transition leave-absolute>
+                <v-btn icon @click.stop="cancel" style="top: -12px">
                   <v-icon color="red">cancel</v-icon>
                 </v-btn>
-           </v-list-tile-content>
-        </v-list-tile>
-
-        <v-list-tile v-for="(layer, index) in wmsLayersFromGetCapabilities" :key="index" >
-              <!--<v-checkbox  @click.prevent="layerCheckboxClicked" :label="layer.name"></v-checkbox>-->
-          <v-list-tile-action>
-            <v-switch  @click.native="layerSwitchClicked(layer)"  v-model="layersBoolean[index]" :disabled="layersBoolean[index]" color="cyan"/></v-switch>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            {{layer.name}}
-            <!--<v-checkbox  @click="layerCheckboxClicked(layer)" :value="layer" :label="layer.name"></v-checkbox>-->
-          </v-list-tile-content>
-        </v-list-tile>
+              </v-fade-transition>
+            </template>
+          </v-text-field>
+        </v-list-item-content>
+      </v-list-item>
+      
+      <v-list-tile v-for="(layer, index) in wmsLayersFromGetCapabilities" :key="index" >
+        <!--<v-checkbox  @click.prevent="layerCheckboxClicked" :label="layer.name"></v-checkbox>-->
+        <v-list-tile-action>
+          <v-switch  @click.native="layerSwitchClicked(layer)"  v-model="layersBoolean[index]" :disabled="layersBoolean[index]" color="cyan"/>
+        </v-list-tile-action>
+        <v-list-tile-content>
+          {{layer.name}}
+          <!--<v-checkbox  @click="layerCheckboxClicked(layer)" :value="layer" :label="layer.name"></v-checkbox>-->
+        </v-list-tile-content>
+      </v-list-tile>
     </v-list-group>
   </v-list>
 </template>
@@ -70,7 +87,7 @@ export default {
   methods: {
     onChange(anItem) {
       let changed_item_on = "changed-items-on-list-checkbox"
-      let idx = this.itemsName.indexOf(anItem)
+      let idx = this.itemsName.indexOf(this.item)
       let itemObject = this.items[idx]
       if(!itemObject)
         return
@@ -104,6 +121,7 @@ export default {
       let iri = this.normalizedUrlWMSCapabilities(this.url)
       try {
           const response = await axios.get(iri)
+
           this.wmsLayersFromGetCapabilities = this.facadeOL().getWMSCapabilityLayers(response.data);
           for (let i = 0; i++; i <= this.wmsLayersFromGetCapabilities.length)
             this.layersBoolean[i] = false
@@ -113,12 +131,8 @@ export default {
           console.log("getWMSLayersFromGetCapabilities.Houve algum erro durante a requisição. " + this.errors);
       }
     },
-    facadeOL() {
-      return this.$store.state.facadeOL
-    },
     async search() {
-
-      let iri = null
+      //let iri = null
       if (this.url =='')
         return
       if (this.isWMSGetMap(this.url))

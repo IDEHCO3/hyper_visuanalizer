@@ -2,7 +2,6 @@ import Map from 'ol/Map'
 import View from 'ol/View'
 import TileLayer from 'ol/layer/Tile'
 import XYZ from 'ol/source/XYZ'
-import OSM from 'ol/source/XYZ'
 import TileImage from 'ol/source/TileImage'
 import ImageLayer from 'ol/layer/Image'
 import ImageWMS from 'ol/source/ImageWMS'
@@ -10,16 +9,18 @@ import Vector from 'ol/source/Vector'
 import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import WMSCapabilities from 'ol/format/WMSCapabilities'
-import {transformExtent} from 'ol/proj'
 import Stroke from 'ol/style/Stroke'
 import Graticule from 'ol/Graticule'
-import axios from 'axios';
+import axios from 'axios'
+
+import Geobuf from 'geobuf'
+import Pbf from 'pbf'
 import { WMSCapabilityLayer} from './LayerResource'
 
 export class FacadeOL {
     constructor(id_map='map', coordinates_center=[-4331024.58685793, -1976355.8033415168], a_zoom_value = 4, a_baseLayer_name='OSM' ) {
       this.map = new Map({ target: id_map});
-      this.view = new View({ center: coordinates_center, zoom: a_zoom_value});
+      this.view = new View({center: coordinates_center, zoom: a_zoom_value});
       this.map.setView(this.view);
       this.currentBaseLayer = this.osmBaseLayer();
       this.map.addLayer(this.currentBaseLayer);
@@ -54,19 +55,21 @@ export class FacadeOL {
     baseLayer(a_baseLayer_name) {
       // name: 'Wikimedia', value: 'wikimedia'}, {name: 'Nenhum', value: null}]
       const layers = {
-          'OSM': this.osmBaseLayer(),
-          'google': this.googleBaseLayer() ,
-          'satelite': this.sateliteBaseLayer(),
-          'watercolor': this.watercolorBaseLayer(),
-          'wikimedia': this.wikimediaBaseLayer(),
-          null: this.nullBaseLayer()
-        }
+        'OSM': this.osmBaseLayer(),
+        'google': this.googleBaseLayer() ,
+        'satelite': this.sateliteBaseLayer(),
+        'watercolor': this.watercolorBaseLayer(),
+        'wikimedia': this.wikimediaBaseLayer(),
+        null: this.nullBaseLayer()
+      }
       return layers[a_baseLayer_name]
     }
     setBaseLayer(a_baseLayer_name) {
       this.map.removeLayer(this.currentBaseLayer)
+      
       if (!a_baseLayer_name)
         return
+
       this.currentBaseLayer = this.baseLayer(a_baseLayer_name)
       this.map.addLayer(this.currentBaseLayer)
       this.currentBaseLayer.setZIndex(0);
@@ -80,7 +83,7 @@ export class FacadeOL {
     getWMSCapabilityLayers(requestedXml) {
       let capability_json = this.getWMSCapabilitiesAsJSON(requestedXml)
       let layers = capability_json.Capability.Layer.Layer
-      
+
       return layers.map((a_layer) => new WMSCapabilityLayer(a_layer, capability_json.version, capability_json.Service.OnlineResource))
     }
     getWMSMap(wmsLayer) {
@@ -112,19 +115,24 @@ export class FacadeOL {
     addVectorLayerFromGeoJSON(geoJson) {
       const gjson_format = new GeoJSON().readFeatures(geoJson, {featureProjection: this.map.getView().getProjection()})
       const vector_source = new Vector({features: gjson_format})
-      const vector_layer = new VectorLayer({ source: vector_source })
+      const vector_layer = new VectorLayer({ renderMode: 'image', source: vector_source })
       this.map.addLayer(vector_layer)
       return vector_layer
     }
     async addHyperResourceLayer(a_HyperResourceLayer) {
       let resp_get
       try {
-         resp_get = await axios.get(a_HyperResourceLayer.iri)
+        let requestConfig = { responseType: 'arraybuffer', headers: {'Accept': 'application/octet-stream'} }
+        resp_get = await axios.get(a_HyperResourceLayer.iri, requestConfig)
       }
       catch(err) {
         console.log('Houve algum erro na requisição. ', err)
       }
-      const gjson_format = new GeoJSON().readFeatures(resp_get.data, {featureProjection: this.map.getView().getProjection()})
+      finally {
+        console.log("RESPOSTA BINARIA" + resp_get.data)
+        var geoJson = Geobuf.decode(new Pbf(resp_get.data))
+      }
+      const gjson_format = new GeoJSON().readFeatures(geoJson, {featureProjection: this.map.getView().getProjection()})
       const vector_source = new Vector({features: gjson_format})
       const vector_layer = new VectorLayer({ source: vector_source })
       this.map.addLayer(vector_layer)

@@ -1,24 +1,24 @@
 <template>
-      <!--<v-layout row justify-center wrap>-->
-        <v-tabs v-model="active" color="cyan" dark slider-color="yellow" >
-          <v-tab  :key="1"  ripple > Atributos </v-tab>
-          <v-tab  :key="2"  ripple > Operações </v-tab>
-          <v-tab  :key="3"  ripple > Requisições </v-tab>
-          <v-tab  :key="4"  ripple > Junções no cliente </v-tab>
-          <v-tab-item  :key="1">
-             <basic-hyper-options-attribute :optionsLayer="optionsLayer" > </basic-hyper-options-attribute>
-          </v-tab-item>
-          <v-tab-item  :key="2">
-              <basic-hyper-options-operation :optionsLayer="optionsLayer" > </basic-hyper-options-operation>
-          </v-tab-item>
-          <v-tab-item  :key="3">
-              <basic-hyper-options-requisicao @selectedUrl="selectedUrl"  @close="closeDialog" :optionsLayer="optionsLayer" > </basic-hyper-options-requisicao>
-          </v-tab-item>
-           <v-tab-item  :key="4">
-              <basic-hyper-join-client @close="closeDialog" :optionsLayer="optionsLayer" > </basic-hyper-join-client>
-          </v-tab-item>
-        </v-tabs>
+  <!--<v-layout row justify-center wrap>-->
+  <v-tabs dark v-model="active" color="cyan" slider-color="yellow" >
+    <v-tab :key="1" ripple > Atributos </v-tab>
+    <v-tab :key="2" ripple > Operações </v-tab>
+    <v-tab :key="3" ripple > Requisições </v-tab>
+    <v-tab :key="4" ripple > Junções no cliente </v-tab>
 
+    <v-tab-item :key="1">
+      <basic-hyper-options-attribute :optionsLayer="optionsLayer" />
+    </v-tab-item>
+    <v-tab-item :key="2">
+      <basic-hyper-options-operation :optionsLayer="optionsLayer" />
+    </v-tab-item>
+    <v-tab-item :key="3">
+      <basic-hyper-options-requisicao @selectedUrl="selectedUrl" @close="closeDialog" :optionsLayer="optionsLayer" />
+    </v-tab-item>
+    <v-tab-item :key="4">
+      <basic-hyper-join-client @close="closeDialog" :optionsLayer="optionsLayer" :hyperLayer="hyperLayer" />
+    </v-tab-item>
+  </v-tabs>
 </template>
 
 <script>
@@ -27,39 +27,35 @@ import BasicHyperOptionsAttribute from './BasicHyperOptionsAttribute'
 import BasicHyperOptionsOperation from './BasicHyperOptionsOperation'
 import BasicHyperOptionsRequisicao from './BasicHyperOptionsRequisicao'
 import BasicHyperJoinClient from './BasicHyperJoinClient'
+
 export default {
   props: {
-    name: {type: String, required: false},
     optionsLayer: { type: Object, required: false}, // Items is Array. each Item  is an object => {name: a_name, value: a_value }
-    icon_name: {type: String, required: false},
-    title: {type: String, required: false},
-
+    hyperLayer: {type: Object, required: false},
   },
-   components: {BasicHyperOptionsAttribute, BasicHyperOptionsOperation, BasicHyperOptionsRequisicao, BasicHyperJoinClient},
+  components: { BasicHyperOptionsAttribute, BasicHyperOptionsOperation, BasicHyperOptionsRequisicao, BasicHyperJoinClient },
   data() {
    return {
-     active: null,
-     dialog: false,
+     active: null
    }
   },
   methods: {
     closeDialog() {
-      console.log('close on BasicHyperOptions')
+      //console.log('close on BasicHyperOptions')
       this.$emit("closeDialog")
-
     },
     selectedUrl(expressionUrl) {
       //console.log("selectedUrl: " + expressionUrl);
       this.$emit("expressionUrlSelected", expressionUrl)
     }
-  },
-
+  }
 }
 </script>
+
 <style scoped>
 .nospace {
-   margin: 0px;
-   padding: 0px;
+  margin: 0px;
+  padding: 0px;
 }
 .container {
   display: grid;

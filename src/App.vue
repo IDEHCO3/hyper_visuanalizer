@@ -12,8 +12,9 @@
   import  HvNavDrawer from './components/hv-nav-drawer'
   export default {
     name: 'app',
-    components: { 'hv-baseview': HvBaseview,
-                  'hv-nav-drawer': HvNavDrawer
+    components: { 
+      'hv-baseview': HvBaseview,
+      'hv-nav-drawer': HvNavDrawer
     }
   }
 </script>
@@ -28,3 +29,4 @@
   margin-top: 0px;
 }
 </style>
+
